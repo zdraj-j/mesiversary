@@ -114,25 +114,31 @@ function resolveInitialState() {
   const mesDate    = new Date(CONFIG.MESIVERSARIO_ACTUAL).getTime();
   const revMs      = CONFIG.REVEAL_DURATION_MIN * 60 * 1000;
 
-  // Todavía no es el día → abre en el countdown principal
+  // Primera visita: mostrar bienvenida y guardar que ya se vio
+  if (!localStorage.getItem("visited")) {
+    localStorage.setItem("visited", "1");
+    unlockedUpTo = CONFIG.SLIDE_COUNTDOWN;
+    goTo(CONFIG.SLIDE_BIENVENIDA);
+    return;
+  }
+
+  // Visitas siguientes: abrir en el slide activo según la hora
   if (now < mesDate) {
     unlockedUpTo = CONFIG.SLIDE_COUNTDOWN;
     goTo(CONFIG.SLIDE_COUNTDOWN);
     return;
   }
 
-  // Es el día: revisar cada actividad
-  let landingSlide = CONFIG.SLIDE_COUNTDOWN; // fallback
+  let landingSlide = CONFIG.SLIDE_COUNTDOWN;
 
   for (let i = 0; i < CONFIG.actividades.length; i++) {
-    const act       = CONFIG.actividades[i];
-    const actTime   = new Date(act.target).getTime();
-    const actEnd    = actTime + revMs;
-    const nextAct   = CONFIG.actividades[i + 1];
-    const nextTime  = nextAct ? new Date(nextAct.target).getTime() : Infinity;
+    const act      = CONFIG.actividades[i];
+    const actTime  = new Date(act.target).getTime();
+    const actEnd   = actTime + revMs;
+    const nextAct  = CONFIG.actividades[i + 1];
+    const nextTime = nextAct ? new Date(nextAct.target).getTime() : Infinity;
 
     if (now >= actTime && now < actEnd) {
-      // Estamos dentro del período de revelación de esta actividad
       unlockUpToActivity(i);
       showReveal(act);
       if (nextAct) showNextBar(nextAct, nextTime);
@@ -141,15 +147,13 @@ function resolveInitialState() {
     }
 
     if (now >= actEnd && now < nextTime) {
-      // Pasó la hora de esta actividad, esperando la siguiente
       unlockUpToActivity(i);
-      showReveal(act);          // la actividad pasada sigue visible
+      showReveal(act);
       landingSlide = CONFIG.SLIDE_ACT_INICIO + i;
       break;
     }
   }
 
-  // Pasaron TODAS las actividades → slide de cierre
   const lastAct    = CONFIG.actividades[CONFIG.actividades.length - 1];
   const lastActEnd = new Date(lastAct.target).getTime() + revMs;
   if (now >= lastActEnd) {
@@ -159,14 +163,6 @@ function resolveInitialState() {
   }
 
   goTo(landingSlide);
-}
-
-/* Desbloquea slides hasta la actividad i (inclusive) */
-function unlockUpToActivity(i) {
-  for (let k = 0; k <= i; k++) {
-    const slideIdx = CONFIG.SLIDE_ACT_INICIO + k;
-    unlockSlide(slideIdx);
-  }
 }
 
 /* Muestra la tarjeta de revelación de una actividad */
