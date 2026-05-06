@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Contigo · Mesiversarios 🤍</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ══════════════════════════════════════════════════════════
+       BARRA SUPERIOR: "próximo evento en X"
+       Visible solo durante el período de revelación de actividad.
+       ══════════════════════════════════════════════════════════ -->
+  <div class="next-bar hidden" id="next-bar">
+    <i data-lucide="clock" class="next-bar-icon"></i>
+    <span id="next-bar-label">Próxima sorpresa</span>
+    <span class="next-bar-time" id="next-bar-time">--:--:--</span>
+  </div>
+
+  <main id="app" class="sections-wrapper">
+
+    <!-- ────────────────────────────────────────────────────────
+         SLIDE 0 · Bienvenida general
+    ──────────────────────────────────────────────────────────── -->
+    <section class="slide" id="slide-0" data-index="0">
+      <div class="slide-inner">
+        <div class="badge">Nuestro camino juntos 🤍</div>
+        <div class="hero-icon">
+          <div class="icon-heart foto-heart">
+            <img src="foto.jpg" alt="Nosotros" />
+          </div>
+        </div>
+        <h1 class="display-title">Cada mes<br/><em>contigo</em></h1>
+        <p class="body-text">
+          Desde el 4 de noviembre de 2025,<br/>
+          cada mes es me recuerda que es mi felicidad quererte.
+        </p>
+        <div class="divider-ornament">✦ ✦ ✦</div>
+        <p class="hint-text">Desliza para ver nuestra historia</p>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════
+         SLIDES 1–7 · Resúmenes de mesiversarios pasados
+         Nov 2025 → May 2026
+
+         Para editar: cambia el texto en <p class="past-note">
+         Fotos: mes-1.jpg, mes-2.jpg ... mes-7.jpg
+    ════════════════════════════════════════════════════════════ -->
+
+    <!-- Mes 0 · 4 noviembre 2025 (martes) -->
+    <section class="slide slide-past" id="slide-1" data-index="1">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">El inicio</span>
+          <span class="past-name">de todo</span>
+          <span class="past-date">4 · Nov · 2025</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-0.jpg" alt="Noviembre 2025" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de noviembre -->
+          <p class="past-note"><i data-lucide="map-pin" class="inline-icon"></i> Ecoparque Tángara. Un bonito fin de semana juntos.🍂</p>
+        </div>
+        <div class="past-tag-pill">0 meses</div>
+      </div>
+    </section>
+
+    <!-- Mes 1 · 4 diciembre 2025 (jueves) -->
+    <section class="slide slide-past" id="slide-2" data-index="2">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Primer</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · Dic · 2025</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-1.jpg" alt="Diciembre 2025" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de diciembre -->
+          <p class="past-note"><i data-lucide="moon-star" class="inline-icon"></i> Un alumbrado feito, pero tú eras y eres la lucecita que necesitaba.</p>
+        </div>
+        <div class="past-tag-pill">1 mes</div>
+      </div>
+    </section>
+
+    <!-- Mes 2 · 4 enero 2026 (domingo) -->
+    <section class="slide slide-past" id="slide-3" data-index="3">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Segundo</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · Ene · 2026</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-2.jpg" alt="Enero 2026" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de enero -->
+          <p class="past-note"><i data-lucide="map-pin" class="inline-icon"></i> La fugitiva. El lugar fue un desacierto, pero estar contigo es todo lo que necesito. El mejor inicio de año igualmente.</p>
+        </div>
+        <div class="past-tag-pill">2 meses</div>
+      </div>
+    </section>
+
+    <!-- Mes 3 · 4 febrero 2026 (miércoles) -->
+    <section class="slide slide-past" id="slide-4" data-index="4">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Tercer</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · Feb · 2026</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-3.jpg" alt="Febrero 2026" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de febrero -->
+          <p class="past-note"><i data-lucide="house-heart" class="inline-icon"></i> Empezamos nuestro hogar <i data-lucide="heart" class="inline-icon"></i></p>
+        </div>
+        <div class="past-tag-pill">3 meses</div>
+      </div>
+    </section>
+
+    <!-- Mes 4 · 4 marzo 2026 (miércoles) -->
+    <section class="slide slide-past" id="slide-5" data-index="5">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Cuarto</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · Mar · 2026</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-4.jpg" alt="Marzo 2026" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de marzo -->
+          <p class="past-note">Cuatro meses y ya no recuerdo cómo era esto sin ti. <i data-lucide="road" class="inline-icon"></i></p>
+        </div>
+        <div class="past-tag-pill">4 meses</div>
+      </div>
+    </section>
+
+    <!-- Mes 5 · 4 abril 2026 (sábado) -->
+    <section class="slide slide-past" id="slide-6" data-index="6">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Quinto</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · Abr · 2026</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-5.jpg" alt="Abril 2026" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de abril -->
+          <p class="past-note">No fue el mejor arte, pero era evidencia de que nos complementamos <i data-lucide="heart-handshake" class="inline-icon"></i></p>
+        </div>
+        <div class="past-tag-pill">5 meses</div>
+      </div>
+    </section>
+
+    <!-- Mes 6 · 4 mayo 2026 (lunes) -->
+    <section class="slide slide-past" id="slide-7" data-index="7">
+      <div class="slide-inner">
+        <div class="past-month-header">
+          <span class="past-ordinal">Sexto</span>
+          <span class="past-name">mesiversario</span>
+          <span class="past-date">4 · May · 2026</span>
+        </div>
+        <div class="past-photo-wrap">
+          <img src="mes-6.jpg" alt="Mayo 2026" class="past-photo" />
+          <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+        </div>
+        <div class="past-card">
+          <!-- EDITA: recuerdo de mayo -->
+          <p class="past-note"><i data-lucide="cat" class="inline-icon"></i> La mitad del camino al primer año. Y me encata saber que ha valido. <i data-lucide="paw-print" class="inline-icon"></i></p>
+        </div>
+        <div class="past-tag-pill">6 meses</div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════
+         SLIDE 8 · COUNTDOWN PRINCIPAL AL 4 DE JUNIO 2026
+         La app abre aquí automáticamente mientras no sea el día.
+         4 de junio = jueves (día laboral)
+    ════════════════════════════════════════════════════════════ -->
+    <section class="slide slide-main-countdown" id="slide-8" data-index="8">
+      <div class="slide-inner">
+        <div class="badge">Próximo mesiversario</div>
+        <div class="month-number-display">7</div>
+        <h2 class="section-title">Séptimo<br/><em>mesiversario</em></h2>
+        <p class="slide-tag">4 de junio · 2026 · Jueves</p>
+
+        <div class="countdown-block main-countdown" id="countdown-main">
+          <p class="countdown-label">Falta para nuestro día</p>
+          <div class="countdown-display">
+            <div class="time-unit">
+              <span class="time-num" id="cm-d">--</span>
+              <span class="time-word">d</span>
+            </div>
+            <div class="time-sep">:</div>
+            <div class="time-unit">
+              <span class="time-num" id="cm-h">--</span>
+              <span class="time-word">h</span>
+            </div>
+            <div class="time-sep">:</div>
+            <div class="time-unit">
+              <span class="time-num" id="cm-m">--</span>
+              <span class="time-word">m</span>
+            </div>
+            <div class="time-sep">:</div>
+            <div class="time-unit">
+              <span class="time-num" id="cm-s">--</span>
+              <span class="time-word">s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="letter-card small">
+          <p>Ya viene el día. Tengo todo planeado para que sea especial. <i data-lucide="heart" class="past-heart-icon"></i></p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════
+         SLIDES 9–12 · Actividades del 4 de junio (laboral)
+         Horario de trabajo: 7:00 – 16:30
+
+         Para editar: cambia el texto en <p class="reveal-desc">
+         Los horarios están en CONFIG.actividades en app.js
+    ════════════════════════════════════════════════════════════ -->
+
+    <!-- Actividad 1 · Desayuno · 7:00 am -->
+    <section class="slide slide-activity locked" id="slide-9" data-index="9">
+      <div class="slide-inner">
+        <div class="lock-overlay" id="lock-9">
+          <i data-lucide="lock" class="lock-icon"></i>
+          <p>Se abre cuando sea el momento</p>
+        </div>
+        <div class="activity-number">01</div>
+        <div class="slide-tag">7:00 am · Antes del trabajo</div>
+        <h2 class="section-title">El<br/><em>desayuno</em></h2>
+        <div class="countdown-block" id="countdown-9">
+          <p class="countdown-label">Falta para tu primera sorpresa</p>
+          <div class="countdown-display">
+            <div class="time-unit"><span class="time-num" id="c9-h">--</span><span class="time-word">h</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c9-m">--</span><span class="time-word">m</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c9-s">--</span><span class="time-word">s</span></div>
+          </div>
+        </div>
+        <div class="reveal-card hidden" id="reveal-9">
+          <i data-lucide="coffee" class="reveal-icon"></i>
+          <h3>¡Hora del desayuno especial!</h3>
+          <!-- EDITA: describe el desayuno que planeas -->
+          <p class="reveal-desc">Antes de salir al trabajo, hay algo especial esperándote. Revisa la cocina (o tu bolso). ☀️🥐</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actividad 2 · Mensaje de la mañana · 10:00 am -->
+    <section class="slide slide-activity locked" id="slide-10" data-index="10">
+      <div class="slide-inner">
+        <div class="lock-overlay" id="lock-10">
+          <i data-lucide="lock" class="lock-icon"></i>
+          <p>Se abre cuando sea el momento</p>
+        </div>
+        <div class="activity-number">02</div>
+        <div class="slide-tag">10:00 am · Pausa en el trabajo</div>
+        <h2 class="section-title">Un mensaje<br/><em>para ti</em></h2>
+        <div class="countdown-block" id="countdown-10">
+          <p class="countdown-label">Falta para la sorpresa de la mañana</p>
+          <div class="countdown-display">
+            <div class="time-unit"><span class="time-num" id="c10-h">--</span><span class="time-word">h</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c10-m">--</span><span class="time-word">m</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c10-s">--</span><span class="time-word">s</span></div>
+          </div>
+        </div>
+        <div class="reveal-card hidden" id="reveal-10">
+          <i data-lucide="mail-heart" class="reveal-icon"></i>
+          <h3>¡Pausa de 10 minuticos!</h3>
+          <!-- EDITA: el mensaje de la mañana -->
+          <p class="reveal-desc">Sé que el trabajo está pesado. Pero quería que supieras que estoy pensando en ti. Revisa tus mensajes. 💌</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actividad 3 · Almuerzo · 12:30 pm -->
+    <section class="slide slide-activity locked" id="slide-11" data-index="11">
+      <div class="slide-inner">
+        <div class="lock-overlay" id="lock-11">
+          <i data-lucide="lock" class="lock-icon"></i>
+          <p>Se abre cuando sea el momento</p>
+        </div>
+        <div class="activity-number">03</div>
+        <div class="slide-tag">12:30 pm · Almuerzo</div>
+        <h2 class="section-title">El<br/><em>almuerzo</em></h2>
+        <div class="countdown-block" id="countdown-11">
+          <p class="countdown-label">Falta para la sorpresa del mediodía</p>
+          <div class="countdown-display">
+            <div class="time-unit"><span class="time-num" id="c11-h">--</span><span class="time-word">h</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c11-m">--</span><span class="time-word">m</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c11-s">--</span><span class="time-word">s</span></div>
+          </div>
+        </div>
+        <div class="reveal-card hidden" id="reveal-11">
+          <i data-lucide="utensils" class="reveal-icon"></i>
+          <h3>¡Hora de almorzar juntos!</h3>
+          <!-- EDITA: plan del almuerzo -->
+          <p class="reveal-desc">Hoy el almuerzo es diferente. Te espero en [lugar] o revisa lo que te dejé. 🍱💛</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actividad 4 · Cita de la tarde · 17:30 (sale a las 16:30) -->
+    <section class="slide slide-activity locked" id="slide-12" data-index="12">
+      <div class="slide-inner">
+        <div class="lock-overlay" id="lock-12">
+          <i data-lucide="lock" class="lock-icon"></i>
+          <p>Se abre cuando sea el momento</p>
+        </div>
+        <div class="activity-number">04</div>
+        <div class="slide-tag">5:30 pm · Al salir del trabajo</div>
+        <h2 class="section-title">La tarde<br/><em>es nuestra</em></h2>
+        <div class="countdown-block" id="countdown-12">
+          <p class="countdown-label">Falta para nuestra cita</p>
+          <div class="countdown-display">
+            <div class="time-unit"><span class="time-num" id="c12-h">--</span><span class="time-word">h</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c12-m">--</span><span class="time-word">m</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="c12-s">--</span><span class="time-word">s</span></div>
+          </div>
+        </div>
+        <div class="reveal-card hidden" id="reveal-12">
+          <i data-lucide="map-pin" class="reveal-icon"></i>
+          <h3>¡Empieza nuestra tarde!</h3>
+          <!-- EDITA: plan de la tarde/noche -->
+          <p class="reveal-desc">Ya terminó el trabajo. Ahora empieza lo bueno. Nos vemos en [lugar], vístete cómoda. 🌆🌸</p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════════════════════════
+         SLIDE 13 · Cierre del mes + countdown al próximo
+         Próximo: 4 julio 2026 = sábado (¡día libre!)
+    ════════════════════════════════════════════════════════════ -->
+    <section class="slide slide-closing locked" id="slide-13" data-index="13">
+      <div class="slide-inner">
+        <div class="lock-overlay" id="lock-13">
+          <i data-lucide="lock" class="lock-icon"></i>
+          <p>Se abre al final del día</p>
+        </div>
+
+        <div class="hero-icon">
+          <i data-lucide="stars" class="icon-heart pulse"></i>
+        </div>
+
+        <h2 class="section-title">Ocho meses<br/><em>increíbles</em></h2>
+
+        <div class="letter-card">
+          <p>Gracias por este día y por todos los anteriores. Cada mes contigo es mejor que el anterior.</p>
+          <!-- EDITA: palabras de cierre -->
+          <p>Y apenas faltan cuatro meses más para el primer año. Vamos a hacerlos todos especiales.</p>
+          <p>— <em>Con todo mi amor</em> 💛</p>
+        </div>
+
+        <div class="divider-ornament">✦ ✦ ✦</div>
+
+        <!-- Countdown al 9° mesiversario: 4 julio 2026 (sábado 🎉) -->
+        <div class="countdown-block next-month-countdown">
+          <p class="countdown-label">Siguiente mesiversario</p>
+          <p class="next-month-name">4 de julio · 2026 · ¡Sábado! 🎉</p>
+          <div class="countdown-display">
+            <div class="time-unit"><span class="time-num" id="cn-d">--</span><span class="time-word">d</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="cn-h">--</span><span class="time-word">h</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="cn-m">--</span><span class="time-word">m</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-unit"><span class="time-num" id="cn-s">--</span><span class="time-word">s</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="slide-nav" id="slide-nav">
+    <button class="nav-btn nav-prev" id="btn-prev" aria-label="Sección anterior">
+      <i data-lucide="chevron-left"></i>
+    </button>
+    <div class="nav-dots" id="nav-dots"></div>
+    <button class="nav-btn nav-next" id="btn-next" aria-label="Sección siguiente">
+      <i data-lucide="chevron-right"></i>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
