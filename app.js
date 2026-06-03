@@ -21,45 +21,62 @@ const CONFIG = {
      · revealId → id de la tarjeta de revelación
      · nextBarLabel → texto que aparece en la barra superior
        mientras transcurre la actividad anterior              */
-  actividades: [
-    {
-      target:       "2026-06-04T07:00:00",
-      slideId:      "slide-9",
-      countdownId:  "countdown-9",
-      revealId:     "reveal-9",
-      lockId:       "lock-9",
-      spanH: "c9-h", spanM: "c9-m", spanS: "c9-s",
-      nextBarLabel: "Próxima sorpresa",
-    },
-    {
-      target:       "2026-06-04T10:00:00",
-      slideId:      "slide-10",
-      countdownId:  "countdown-10",
-      revealId:     "reveal-10",
-      lockId:       "lock-10",
-      spanH: "c10-h", spanM: "c10-m", spanS: "c10-s",
-      nextBarLabel: "Siguiente sorpresa",
-    },
-    {
-      target:       "2026-06-04T12:30:00",
-      slideId:      "slide-11",
-      countdownId:  "countdown-11",
-      revealId:     "reveal-11",
-      lockId:       "lock-11",
-      spanH: "c11-h", spanM: "c11-m", spanS: "c11-s",
-      nextBarLabel: "Siguiente sorpresa",
-    },
-    {
-      target:       "2026-06-04T17:30:00",
-      slideId:      "slide-12",
-      countdownId:  "countdown-12",
-      revealId:     "reveal-12",
-      lockId:       "lock-12",
-      spanH: "c12-h", spanM: "c12-m", spanS: "c12-s",
-      nextBarLabel: "Próximo plan",
-    },
-  ],
-
+actividades: [
+  {
+    target:       "2026-06-04T00:00:00",
+    slideId:      "slide-9",
+    countdownId:  "countdown-9",
+    revealId:     "reveal-9",
+    lockId:       "lock-9",
+    spanH: "c9-h", spanM: "c9-m", spanS: "c9-s",
+    nextBarLabel: "Próxima sorpresa",
+  },
+  {
+    target:       "2026-06-04T07:30:00",
+    slideId:      "slide-10",
+    countdownId:  "countdown-10",
+    revealId:     "reveal-10",
+    lockId:       "lock-10",
+    spanH: "c10-h", spanM: "c10-m", spanS: "c10-s",
+    nextBarLabel: "Siguiente sorpresa",
+  },
+  {
+    target:       "2026-06-04T10:00:00",
+    slideId:      "slide-11",
+    countdownId:  "countdown-11",
+    revealId:     "reveal-11",
+    lockId:       "lock-11",
+    spanH: "c11-h", spanM: "c11-m", spanS: "c11-s",
+    nextBarLabel: "Siguiente sorpresa",
+  },
+  {
+    target:       "2026-06-04T17:00:00",
+    slideId:      "slide-12",
+    countdownId:  "countdown-12",
+    revealId:     "reveal-12",
+    lockId:       "lock-12",
+    spanH: "c12-h", spanM: "c12-m", spanS: "c12-s",
+    nextBarLabel: "Nuestra cita",
+  },
+  {
+    target:       "2026-06-04T20:30:00",
+    slideId:      "slide-13",
+    countdownId:  "countdown-13",
+    revealId:     "reveal-13",
+    lockId:       "lock-13",
+    spanH: "c13-h", spanM: "c13-m", spanS: "c13-s",
+    nextBarLabel: "Último mensaje del día",
+  },
+  {
+    target:       "2026-06-04T21:00:00",
+    slideId:      "slide-14",
+    countdownId:  "countdown-14",
+    revealId:     "reveal-14",
+    lockId:       "lock-14",
+    spanH: "c14-h", spanM: "c14-m", spanS: "c14-s",
+    nextBarLabel: "",
+  },
+],
   /* Fecha del siguiente mesiversario (para el slide de cierre) */
   SIGUIENTE_MESIVERSARIO: "2026-07-04T00:00:00",
 
@@ -68,10 +85,10 @@ const CONFIG = {
   SLIDE_PAST_INICIO:  1,   // primer mes pasado
   SLIDE_PAST_FIN:     7,   // último mes pasado
   SLIDE_COUNTDOWN:    8,   // countdown principal al mesiversario
-  SLIDE_ACT_INICIO:   9,   // primera actividad del día
-  SLIDE_ACT_FIN:     12,   // última actividad del día
-  SLIDE_CIERRE:      13,   // cierre + countdown al siguiente mes
-  TOTAL_SLIDES:      14,
+  SLIDE_ACT_INICIO:   9,
+  SLIDE_ACT_FIN:     14,
+  SLIDE_CIERRE:      15,
+  TOTAL_SLIDES:      16,
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -159,6 +176,8 @@ function resolveInitialState() {
   if (now >= lastActEnd) {
     CONFIG.actividades.forEach(act => showReveal(act));
     unlockSlide(CONFIG.SLIDE_CIERRE);
+    // Marcar el slide de cierre como pasado visualmente
+    CONFIG.SLIDE_PAST_FIN = CONFIG.SLIDE_CIERRE;
     landingSlide = CONFIG.SLIDE_CIERRE;
   }
 
