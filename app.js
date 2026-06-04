@@ -42,7 +42,7 @@ actividades: [
     revealId:     "reveal-10",
     lockId:       "lock-10",
     spanH: "c10-h", spanM: "c10-m", spanS: "c10-s",
-    nextBarLabel: "Siguiente sorpresa",
+    nextBarLabel: "Siguiente",
     heroIcon:     "sun",
   },
   {
@@ -52,7 +52,7 @@ actividades: [
     revealId:     "reveal-11",
     lockId:       "lock-11",
     spanH: "c11-h", spanM: "c11-m", spanS: "c11-s",
-    nextBarLabel: "Siguiente sorpresa",
+    nextBarLabel: "Siguiente",
     heroIcon:     "cake-slice",
   },
   {
@@ -72,7 +72,7 @@ actividades: [
     revealId:     "reveal-13",
     lockId:       "lock-13",
     spanH: "c13-h", spanM: "c13-m", spanS: "c13-s",
-    nextBarLabel: "Último mensaje del día",
+    nextBarLabel: "Último",
     heroIcon:     "sparkles",
   },
   {
