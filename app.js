@@ -32,7 +32,7 @@ actividades: [
     revealId:     "reveal-9",
     lockId:       "lock-9",
     spanH: "c9-h", spanM: "c9-m", spanS: "c9-s",
-    nextBarLabel: "Próxima sorpresa",
+    nextBarLabel: "Próximo",
     heroIcon:     "heart",
   },
   {
