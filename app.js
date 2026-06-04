@@ -7,20 +7,23 @@
    ════════════════════════════════════════════════════════════ */
 const CONFIG = {
 
-  /* Cuánto tiempo (en minutos) se muestra cada actividad antes
-     de pasar automáticamente al siguiente countdown.
-     Cambia este número libremente.                            */
+  /* (Se conserva por compatibilidad. Ya no se usa para ocultar la
+     barra superior: ahora la barra cuenta de forma continua hasta
+     la siguiente actividad.)                                    */
   REVEAL_DURATION_MIN: 60,
 
   /* Fecha/hora del mesiversario actual (4 junio 2026 00:00)   */
   MESIVERSARIO_ACTUAL: "2026-06-04T00:00:00",
 
   /* Actividades del día del mesiversario.
-     · target  → hora exacta en que se revela la actividad
-     · slideId → id del slide que contiene ese countdown
-     · revealId → id de la tarjeta de revelación
+     · target       → hora exacta en que se revela la actividad
+     · slideId      → id del slide que contiene ese countdown
+     · revealId     → id de la tarjeta de revelación
      · nextBarLabel → texto que aparece en la barra superior
-       mientras transcurre la actividad anterior              */
+                      mientras se cuenta hacia esta actividad
+     · heroIcon     → ícono de Lucide grande que llena el centro
+                      cuando la actividad se muestra a pantalla
+                      completa                                   */
 actividades: [
   {
     target:       "2026-06-04T00:00:00",
@@ -30,6 +33,7 @@ actividades: [
     lockId:       "lock-9",
     spanH: "c9-h", spanM: "c9-m", spanS: "c9-s",
     nextBarLabel: "Próxima sorpresa",
+    heroIcon:     "heart",
   },
   {
     target:       "2026-06-04T07:30:00",
@@ -39,6 +43,7 @@ actividades: [
     lockId:       "lock-10",
     spanH: "c10-h", spanM: "c10-m", spanS: "c10-s",
     nextBarLabel: "Siguiente sorpresa",
+    heroIcon:     "sun",
   },
   {
     target:       "2026-06-04T10:00:00",
@@ -48,6 +53,7 @@ actividades: [
     lockId:       "lock-11",
     spanH: "c11-h", spanM: "c11-m", spanS: "c11-s",
     nextBarLabel: "Siguiente sorpresa",
+    heroIcon:     "cake-slice",
   },
   {
     target:       "2026-06-04T17:00:00",
@@ -57,6 +63,7 @@ actividades: [
     lockId:       "lock-12",
     spanH: "c12-h", spanM: "c12-m", spanS: "c12-s",
     nextBarLabel: "Nuestra cita",
+    heroIcon:     "map-pin",
   },
   {
     target:       "2026-06-04T20:30:00",
@@ -66,6 +73,7 @@ actividades: [
     lockId:       "lock-13",
     spanH: "c13-h", spanM: "c13-m", spanS: "c13-s",
     nextBarLabel: "Último mensaje del día",
+    heroIcon:     "sparkles",
   },
   {
     target:       "2026-06-04T21:00:00",
@@ -75,8 +83,16 @@ actividades: [
     lockId:       "lock-14",
     spanH: "c14-h", spanM: "c14-m", spanS: "c14-s",
     nextBarLabel: "",
+    heroIcon:     "heart",
   },
 ],
+
+  /* Momento en que "se acaba el día": al llegar aquí aparece el
+     slide de cierre (recuerdo del 7° mes + countdown al 8°).
+     Por defecto, la medianoche del 4 → 5 de junio.             */
+  CIERRE_TARGET: "2026-06-05T00:00:00",
+  CIERRE_LABEL:  "Nuestro recuerdo",
+
   /* Fecha del siguiente mesiversario (para el slide de cierre) */
   SIGUIENTE_MESIVERSARIO: "2026-07-04T00:00:00",
 
@@ -94,18 +110,20 @@ actividades: [
 /* ════════════════════════════════════════════════════════════
    ESTADO
    ════════════════════════════════════════════════════════════ */
-let currentIndex  = 0;
-let unlockedUpTo  = CONFIG.SLIDE_PAST_FIN + 1; // slides pasados siempre accesibles
+let currentIndex       = 0;
+let unlockedUpTo       = CONFIG.SLIDE_PAST_FIN + 1; // slides pasados siempre accesibles
+let barTimerId         = null;                      // timer único de la barra superior
+let mesiversarioHandled = false;                    // evita disparar dos veces el inicio del día
 
 /* ════════════════════════════════════════════════════════════
    DOM
    ════════════════════════════════════════════════════════════ */
-const slidesEls = document.querySelectorAll(".slide");
-const btnPrev   = document.getElementById("btn-prev");
-const btnNext   = document.getElementById("btn-next");
-const dotsWrap  = document.getElementById("nav-dots");
-const nextBar   = document.getElementById("next-bar");
-const nextBarLbl = document.getElementById("next-bar-label");
+const slidesEls   = document.querySelectorAll(".slide");
+const btnPrev     = document.getElementById("btn-prev");
+const btnNext     = document.getElementById("btn-next");
+const dotsWrap    = document.getElementById("nav-dots");
+const nextBar     = document.getElementById("next-bar");
+const nextBarLbl  = document.getElementById("next-bar-label");
 const nextBarTime = document.getElementById("next-bar-time");
 
 /* ════════════════════════════════════════════════════════════
@@ -115,7 +133,7 @@ function init() {
   if (window.lucide) lucide.createIcons();
 
   buildDots();
-  resolveInitialState();   // decide en qué slide abrir
+  resolveInitialState();   // decide en qué slide abrir y programa el día
   startMainCountdown();
   startActivityCountdowns();
   startNextMonthCountdown();
@@ -124,12 +142,13 @@ function init() {
 
 /* ════════════════════════════════════════════════════════════
    LÓGICA DE APERTURA AUTOMÁTICA
-   Decide en qué slide debe aterrizar la app según la hora real.
+   Decide en qué slide debe aterrizar la app según la hora real
+   y deja programadas las transiciones automáticas pendientes.
    ════════════════════════════════════════════════════════════ */
 function resolveInitialState() {
   const now        = Date.now();
   const mesDate    = new Date(CONFIG.MESIVERSARIO_ACTUAL).getTime();
-  const revMs      = CONFIG.REVEAL_DURATION_MIN * 60 * 1000;
+  const cierreDate = new Date(CONFIG.CIERRE_TARGET).getTime();
 
   // Primera visita: mostrar bienvenida y guardar que ya se vio
   if (!localStorage.getItem("visited")) {
@@ -139,59 +158,135 @@ function resolveInitialState() {
     return;
   }
 
-  // Visitas siguientes: abrir en el slide activo según la hora
+  // Antes del día: abrir en el countdown principal
   if (now < mesDate) {
     unlockedUpTo = CONFIG.SLIDE_COUNTDOWN;
     goTo(CONFIG.SLIDE_COUNTDOWN);
     return;
   }
 
-  let landingSlide = CONFIG.SLIDE_COUNTDOWN;
+  // Ya es el día (o después): el countdown principal ya está en cero,
+  // marcamos para que no vuelva a disparar el inicio del día.
+  mesiversarioHandled = true;
 
+  // ¿Cuál fue la última actividad cuya hora ya pasó?
+  let lastTriggered = -1;
   for (let i = 0; i < CONFIG.actividades.length; i++) {
-    const act      = CONFIG.actividades[i];
-    const actTime  = new Date(act.target).getTime();
-    const actEnd   = actTime + revMs;
-    const nextAct  = CONFIG.actividades[i + 1];
-    const nextTime = nextAct ? new Date(nextAct.target).getTime() : Infinity;
-
-    if (now >= actTime && now < actEnd) {
-      unlockUpToActivity(i);
-      showReveal(act);
-      if (nextAct) showNextBar(nextAct, nextTime);
-      landingSlide = CONFIG.SLIDE_ACT_INICIO + i;
-      break;
-    }
-
-    if (now >= actEnd && now < nextTime) {
-      unlockUpToActivity(i);
-      showReveal(act);
-      landingSlide = CONFIG.SLIDE_ACT_INICIO + i;
-      break;
-    }
+    if (now >= new Date(CONFIG.actividades[i].target).getTime()) lastTriggered = i;
   }
 
-  const lastAct    = CONFIG.actividades[CONFIG.actividades.length - 1];
-  const lastActEnd = new Date(lastAct.target).getTime() + revMs;
-  if (now >= lastActEnd) {
-    CONFIG.actividades.forEach(act => showReveal(act));
+  // Revelar (sin navegar) todas las actividades que ya ocurrieron
+  for (let i = 0; i <= lastTriggered; i++) {
+    revealActivity(i, false);
+  }
+
+  // Si ya terminó el día: mostrar directamente el slide de cierre
+  if (now >= cierreDate) {
     unlockSlide(CONFIG.SLIDE_CIERRE);
-    // Marcar el slide de cierre como pasado visualmente
-    CONFIG.SLIDE_PAST_FIN = CONFIG.SLIDE_CIERRE;
-    landingSlide = CONFIG.SLIDE_CIERRE;
+    goTo(CONFIG.SLIDE_CIERRE);
+    return;
   }
 
-  goTo(landingSlide);
+  // En medio del día: programar la siguiente transición en vivo
+  // y aterrizar en la actividad actual.
+  scheduleNextAfter(lastTriggered);
+  goTo(CONFIG.SLIDE_ACT_INICIO + lastTriggered);
 }
 
-/* Muestra la tarjeta de revelación de una actividad */
-function showReveal(act) {
+/* ════════════════════════════════════════════════════════════
+   REVELACIÓN DE ACTIVIDADES (pantalla completa)
+   ════════════════════════════════════════════════════════════ */
+
+/* Revela una actividad: desbloquea, muestra la tarjeta, oculta el
+   countdown e inserta el ícono central grande. Idempotente.
+   Si navigate === true, además salta a ese slide.              */
+function revealActivity(index, navigate) {
+  const act = CONFIG.actividades[index];
+  if (!act) return;
+  const slideIndex = CONFIG.SLIDE_ACT_INICIO + index;
+
+  unlockUpToActivity(index);
+
   const card = document.getElementById(act.revealId);
-  if (card && card.classList.contains("hidden")) {
-    card.classList.remove("hidden");
-    const cdBlock = document.getElementById(act.countdownId);
-    if (cdBlock) cdBlock.classList.add("done");
+  if (card) card.classList.remove("hidden");
+
+  const cdBlock = document.getElementById(act.countdownId);
+  if (cdBlock) cdBlock.classList.add("done");
+
+  const slideEl = document.getElementById("slide-" + slideIndex);
+  if (slideEl) {
+    slideEl.classList.add("revealed");
+    ensureHeroIcon(slideEl, act);
   }
+
+  if (window.lucide) lucide.createIcons();
+  if (navigate) goTo(slideIndex);
+}
+
+/* Inserta (una sola vez) el ícono de Lucide grande que llena el
+   centro cuando se oculta el countdown.                        */
+function ensureHeroIcon(slideEl, act) {
+  const inner = slideEl.querySelector(".slide-inner");
+  if (!inner || inner.querySelector(".reveal-hero-icon")) return;
+
+  const hero = document.createElement("i");
+  hero.setAttribute("data-lucide", act.heroIcon || "heart");
+  hero.className = "reveal-hero-icon";
+
+  const card = document.getElementById(act.revealId);
+  if (card) inner.insertBefore(hero, card);
+  else      inner.appendChild(hero);
+}
+
+/* Desbloquea todos los slides de actividad hasta el índice dado */
+function unlockUpToActivity(index) {
+  for (let j = 0; j <= index; j++) {
+    const s = CONFIG.SLIDE_ACT_INICIO + j;
+    if (s <= CONFIG.SLIDE_ACT_FIN) unlockSlide(s);
+  }
+}
+
+/* Activación EN VIVO: revela + navega + programa la siguiente */
+function activateActivityLive(index) {
+  revealActivity(index, true);
+  scheduleNextAfter(index);
+}
+
+/* Programa la barra superior hacia la siguiente actividad (o,
+   si ya no hay más, hacia el cierre del día).                  */
+function scheduleNextAfter(index) {
+  const nextAct = CONFIG.actividades[index + 1];
+
+  if (nextAct) {
+    startBarCountdown(
+      nextAct.nextBarLabel,
+      new Date(nextAct.target).getTime(),
+      () => activateActivityLive(index + 1)
+    );
+    return;
+  }
+
+  // No hay más actividades → contar hacia el cierre del día
+  const cierre = new Date(CONFIG.CIERRE_TARGET).getTime();
+  if (Date.now() < cierre) {
+    startBarCountdown(CONFIG.CIERRE_LABEL, cierre, showClosingLive);
+  } else {
+    showClosingLive();
+  }
+}
+
+/* Muestra el slide de cierre (recuerdo + countdown al 8°)      */
+function showClosingLive() {
+  hideBar();
+  unlockSlide(CONFIG.SLIDE_CIERRE);
+  goTo(CONFIG.SLIDE_CIERRE);
+}
+
+/* Se ejecuta cuando el countdown principal llega a cero        */
+function onMesiversarioReached() {
+  if (mesiversarioHandled) return;
+  mesiversarioHandled = true;
+  activateActivityLive(0);
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -275,6 +370,8 @@ btnNext.addEventListener("click", () => goTo(currentIndex + 1));
 
 /* ════════════════════════════════════════════════════════════
    COUNTDOWN PRINCIPAL (al mesiversario)
+   Cuando llega a cero → arranca el día (primera actividad +
+   barra superior hacia la siguiente).
    ════════════════════════════════════════════════════════════ */
 function startMainCountdown() {
   const target = new Date(CONFIG.MESIVERSARIO_ACTUAL).getTime();
@@ -290,8 +387,8 @@ function startMainCountdown() {
       if (hEl) hEl.textContent = "00";
       if (mEl) mEl.textContent = "00";
       if (sEl) sEl.textContent = "00";
-      // Ya es el día → desbloquear primer slide de actividad
-      unlockSlide(CONFIG.SLIDE_ACT_INICIO);
+      // Ya es el día → mostrar la primera actividad a pantalla completa
+      onMesiversarioReached();
       return;
     }
     const d = Math.floor(diff / 86400000);
@@ -310,6 +407,9 @@ function startMainCountdown() {
 
 /* ════════════════════════════════════════════════════════════
    COUNTDOWNS DE ACTIVIDADES DEL DÍA
+   (Cada slide tiene su propio reloj; al llegar a cero revela su
+   actividad como red de seguridad. La navegación automática la
+   conduce la barra superior.)
    ════════════════════════════════════════════════════════════ */
 function startActivityCountdowns() {
   CONFIG.actividades.forEach((act, i) => {
@@ -318,51 +418,21 @@ function startActivityCountdowns() {
 }
 
 function startActivityCountdown(act, index) {
-  const target  = new Date(act.target).getTime();
-  const revMs   = CONFIG.REVEAL_DURATION_MIN * 60 * 1000;
-  const hEl     = document.getElementById(act.spanH);
-  const mEl     = document.getElementById(act.spanM);
-  const sEl     = document.getElementById(act.spanS);
+  const target = new Date(act.target).getTime();
+  const hEl    = document.getElementById(act.spanH);
+  const mEl    = document.getElementById(act.spanM);
+  const sEl    = document.getElementById(act.spanS);
 
   function tick() {
     const diff = target - Date.now();
 
     if (diff <= 0) {
-      // Llegó la hora de esta actividad
       if (hEl) hEl.textContent = "00";
       if (mEl) mEl.textContent = "00";
       if (sEl) sEl.textContent = "00";
-
-      const cdBlock = document.getElementById(act.countdownId);
-      if (cdBlock) cdBlock.classList.add("done");
-
-      // Mostrar la revelación
-      showReveal(act);
-      if (window.lucide) lucide.createIcons();
-
-      // Desbloquear el siguiente slide de actividad
-      const nextSlide = CONFIG.SLIDE_ACT_INICIO + index + 1;
-      if (nextSlide <= CONFIG.SLIDE_ACT_FIN) {
-        unlockSlide(nextSlide);
-      }
-
-      // Si hay siguiente actividad, mostrar barra superior
-      const nextAct = CONFIG.actividades[index + 1];
-      if (nextAct) {
-        const nextTarget = new Date(nextAct.target).getTime();
-        showNextBar(nextAct, nextTarget);
-        // Ocultar barra cuando pase REVEAL_DURATION_MIN
-        setTimeout(() => hideNextBar(), revMs);
-      }
-
-      // Si es la última actividad, desbloquear cierre después del período
-      if (index === CONFIG.actividades.length - 1) {
-        setTimeout(() => {
-          unlockSlide(CONFIG.SLIDE_CIERRE);
-        }, revMs);
-      }
-
-      return; // detiene el tick
+      // Red de seguridad: revela esta actividad sin forzar navegación.
+      revealActivity(index, false);
+      return;
     }
 
     const h = Math.floor(diff / 3600000);
@@ -379,7 +449,7 @@ function startActivityCountdown(act, index) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   COUNTDOWN SIGUIENTE MESIVERSARIO (slide de cierre)
+   COUNTDOWN SIGUIENTE MESIVERSARIO (slide de cierre, 8° mes)
    ════════════════════════════════════════════════════════════ */
 function startNextMonthCountdown() {
   const target = new Date(CONFIG.SIGUIENTE_MESIVERSARIO).getTime();
@@ -412,16 +482,26 @@ function startNextMonthCountdown() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   BARRA SUPERIOR (mientras dura una revelación)
+   BARRA SUPERIOR (cuenta continua hacia la próxima actividad)
+   Al llegar a cero ejecuta onZero (reemplaza la pantalla con la
+   nueva actividad). Mantiene un único timer activo.
    ════════════════════════════════════════════════════════════ */
-function showNextBar(nextAct, nextTargetMs) {
-  nextBarLbl.textContent = nextAct.nextBarLabel || "Próxima sorpresa";
+function startBarCountdown(label, targetMs, onZero) {
+  if (barTimerId) { clearTimeout(barTimerId); barTimerId = null; }
+
+  nextBarLbl.textContent = label || "Próxima sorpresa";
   nextBar.classList.remove("hidden");
 
-  function tickBar() {
-    const diff = nextTargetMs - Date.now();
+  let fired = false;
+
+  function tick() {
+    const diff = targetMs - Date.now();
     if (diff <= 0) {
       nextBarTime.textContent = "¡Ya!";
+      if (!fired) {
+        fired = true;
+        if (typeof onZero === "function") onZero();
+      }
       return;
     }
     const h = Math.floor(diff / 3600000);
@@ -431,12 +511,13 @@ function showNextBar(nextAct, nextTargetMs) {
     nextBarTime.textContent = h > 0
       ? `${p(h)}:${p(m)}:${p(s)}`
       : `${p(m)}:${p(s)}`;
-    setTimeout(tickBar, 1000);
+    barTimerId = setTimeout(tick, 1000);
   }
-  tickBar();
+  tick();
 }
 
-function hideNextBar() {
+function hideBar() {
+  if (barTimerId) { clearTimeout(barTimerId); barTimerId = null; }
   nextBar.classList.add("hidden");
 }
 
