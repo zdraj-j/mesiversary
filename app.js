@@ -46,7 +46,7 @@ actividades: [
     heroIcon:     "sun",
   },
   {
-    target:       "2026-06-04T10:00:00",
+    target:       "2026-06-04T09:00:00",
     slideId:      "slide-11",
     countdownId:  "countdown-11",
     revealId:     "reveal-11",
