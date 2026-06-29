@@ -1,5 +1,9 @@
 /* ============================================================
    ANIVERSARIO · app.js
+   Motor mensual: la baraja de slides se genera según la fecha
+   real. Cada mes, al llegar el día 4, las actividades se revelan;
+   al terminar el día se ocultan/bloquean solas, ese mes pasa a
+   ser un slide de foto y el contador salta al siguiente mes.
    ============================================================ */
 
 /* ════════════════════════════════════════════════════════════
@@ -7,203 +11,461 @@
    ════════════════════════════════════════════════════════════ */
 const CONFIG = {
 
-  /* (Se conserva por compatibilidad. Ya no se usa para ocultar la
-     barra superior: ahora la barra cuenta de forma continua hasta
-     la siguiente actividad.)                                    */
-  REVEAL_DURATION_MIN: 60,
+  /* Primer mes (mes 0). Todo se cuenta a partir de aquí.       */
+  BASE: "2025-11-04T00:00:00",   // 4 noviembre 2025 = "0 meses"
 
-  /* Fecha/hora del mesiversario actual (4 junio 2026 00:00)   */
-  MESIVERSARIO_ACTUAL: "2026-06-04T00:00:00",
+  /* Día del mes en que cae el mesiversario.                    */
+  ANIV_DAY: 4,
 
-  /* Actividades del día del mesiversario.
-     · target       → hora exacta en que se revela la actividad
-     · slideId      → id del slide que contiene ese countdown
-     · revealId     → id de la tarjeta de revelación
-     · nextBarLabel → texto que aparece en la barra superior
-                      mientras se cuenta hacia esta actividad
-     · heroIcon     → ícono de Lucide grande que llena el centro
-                      cuando la actividad se muestra a pantalla
-                      completa                                   */
-actividades: [
-  {
-    target:       "2026-06-04T00:00:00",
-    slideId:      "slide-9",
-    countdownId:  "countdown-9",
-    revealId:     "reveal-9",
-    lockId:       "lock-9",
-    spanH: "c9-h", spanM: "c9-m", spanS: "c9-s",
-    nextBarLabel: "Próximo",
-    heroIcon:     "heart",
-  },
-  {
-    target:       "2026-06-04T07:30:00",
-    slideId:      "slide-10",
-    countdownId:  "countdown-10",
-    revealId:     "reveal-10",
-    lockId:       "lock-10",
-    spanH: "c10-h", spanM: "c10-m", spanS: "c10-s",
-    nextBarLabel: "Siguiente",
-    heroIcon:     "sun",
-  },
-  {
-    target:       "2026-06-04T09:00:00",
-    slideId:      "slide-11",
-    countdownId:  "countdown-11",
-    revealId:     "reveal-11",
-    lockId:       "lock-11",
-    spanH: "c11-h", spanM: "c11-m", spanS: "c11-s",
-    nextBarLabel: "Siguiente",
-    heroIcon:     "cake-slice",
-  },
-  {
-    target:       "2026-06-04T17:00:00",
-    slideId:      "slide-12",
-    countdownId:  "countdown-12",
-    revealId:     "reveal-12",
-    lockId:       "lock-12",
-    spanH: "c12-h", spanM: "c12-m", spanS: "c12-s",
-    nextBarLabel: "Nuestra cita",
-    heroIcon:     "map-pin",
-  },
-  {
-    target:       "2026-06-04T20:30:00",
-    slideId:      "slide-13",
-    countdownId:  "countdown-13",
-    revealId:     "reveal-13",
-    lockId:       "lock-13",
-    spanH: "c13-h", spanM: "c13-m", spanS: "c13-s",
-    nextBarLabel: "Último",
-    heroIcon:     "sparkles",
-  },
-  {
-    target:       "2026-06-04T21:00:00",
-    slideId:      "slide-14",
-    countdownId:  "countdown-14",
-    revealId:     "reveal-14",
-    lockId:       "lock-14",
-    spanH: "c14-h", spanM: "c14-m", spanS: "c14-s",
-    nextBarLabel: "",
-    heroIcon:     "heart",
-  },
-],
+  /* ──────────────────────────────────────────────────────────
+     RECUERDOS DE CADA MES (slides de foto).
+     El índice del arreglo = número de mes (0 = el inicio).
+     Cuando termina el día de un mesiversario, ese mes aparece
+     aquí automáticamente como un slide más.
 
-  /* Momento en que "se acaba el día": al llegar aquí aparece el
-     slide de cierre (recuerdo del 7° mes + countdown al 8°).
-     Por defecto, la medianoche del 4 → 5 de junio.             */
-  CIERRE_TARGET: "2026-06-05T00:00:00",
-  CIERRE_LABEL:  "Nuestro recuerdo",
+     Para agregar un mes nuevo: añade una entrada con su foto
+     (mes-N.jpg) y su nota. El "ordinal", la fecha y el "N meses"
+     se calculan solos.
+     ────────────────────────────────────────────────────────── */
+  meses: [
+    { // Mes 0 · 4 noviembre 2025
+      foto:  "mes-0.jpg",
+      title: { ordinal: "El inicio", name: "de todo" },
+      note:  '<i data-lucide="map-pin" class="inline-icon"></i> Ecoparque Tángara. Un bonito fin de semana juntos.🍂',
+    },
+    { // Mes 1 · 4 diciembre 2025
+      foto: "mes-1.jpg",
+      note: '<i data-lucide="moon-star" class="inline-icon"></i> Un alumbrado feito, pero tú eras y eres la lucecita que necesitaba.',
+    },
+    { // Mes 2 · 4 enero 2026
+      foto: "mes-2.jpg",
+      note: '<i data-lucide="map-pin" class="inline-icon"></i> La fugitiva. El lugar fue un desacierto, pero estar contigo es todo lo que necesito. El mejor inicio de año igualmente.',
+    },
+    { // Mes 3 · 4 febrero 2026
+      foto: "mes-3.jpg",
+      note: '<i data-lucide="house-heart" class="inline-icon"></i> Empezamos nuestro hogar <i data-lucide="heart" class="inline-icon"></i>',
+    },
+    { // Mes 4 · 4 marzo 2026
+      foto: "mes-4.jpg",
+      note: 'Cuatro meses y ya no recuerdo cómo era esto sin ti. <i data-lucide="road" class="inline-icon"></i>',
+    },
+    { // Mes 5 · 4 abril 2026
+      foto: "mes-5.jpg",
+      note: 'No fue el mejor arte, pero era evidencia de que nos complementamos <i data-lucide="heart-handshake" class="inline-icon"></i>',
+    },
+    { // Mes 6 · 4 mayo 2026
+      foto: "mes-6.jpg",
+      note: '<i data-lucide="cat" class="inline-icon"></i> La mitad del camino al primer año. Y me encata saber que ha valido. <i data-lucide="paw-print" class="inline-icon"></i>',
+    },
+    { // Mes 7 · 4 junio 2026
+      foto: "mes-7.jpg",
+      note: '<i data-lucide="ice-cream" class="inline-icon"></i>No era el lugar que tenía planeado, pero me encanta estar contigo sin importar dónde',
+    },
+  ],
 
-  /* Fecha del siguiente mesiversario (para el slide de cierre) */
-  SIGUIENTE_MESIVERSARIO: "2026-07-04T00:00:00",
+  /* ──────────────────────────────────────────────────────────
+     ACTIVIDADES DEL DÍA (plantilla que se repite cada mes).
+     · hh / mm     → hora exacta en que se revela la actividad
+     · tag         → etiqueta de hora visible en el slide
+     · titleTop/Em → título grande (Em va en cursiva)
+     · label       → texto del countdown mientras falta
+     · icon        → ícono de la tarjeta de revelación
+     · heroIcon    → ícono grande central al revelarse
+     · title/desc  → contenido de la tarjeta revelada
+     · barLabel    → texto de la barra superior hacia esta actividad
+     ────────────────────────────────────────────────────────── */
+  actividades: [
+    {
+      hh: 0, mm: 0,
+      tag: "12:00 am · Medianoche",
+      titleTop: "Siete meses", titleEm: "contigo",
+      label: "Falta para tu primer mensaje",
+      icon: "heart", heroIcon: "heart",
+      title: "¡Felices 7 meses, mi amor!",
+      desc: "Hoy cumplimos siete meses juntos y no podría estar más feliz de que seas tú. Te amo con todo lo que tengo. Gracias por cada día, por cada momento, por elegirme.",
+      barLabel: "Próximo",
+    },
+    {
+      hh: 7, mm: 30,
+      tag: "7:30 am · Camino al trabajo",
+      titleTop: "Buenos", titleEm: "días",
+      label: "Falta para tu mensaje de la mañana",
+      icon: "sun", heroIcon: "sun",
+      title: "Aunque toque trabajar…",
+      desc: "Sé que hoy es un día laboral como cualquier otro, pero quiero que recuerdes que te amo. No importa lo que pase en el día, siempre vas a tener mi corazón contigo.",
+      barLabel: "Siguiente",
+    },
+    {
+      hh: 9, mm: 0,
+      tag: "09:00 am · Pausa",
+      titleTop: "El pie", titleEm: "de limón",
+      label: "Falta para el siguiente evento",
+      icon: "cake-slice", heroIcon: "cake-slice",
+      title: "¡Con mucho amor!",
+      desc: "Junto a este mensaje espero entregarte el postrecito que querías, es tuyo, junto con todo mi amor.",
+      barLabel: "Siguiente",
+    },
+    {
+      hh: 17, mm: 0,
+      tag: "5:00 pm · Nuestra cita",
+      titleTop: "Ice You", titleEm: "nos espera",
+      label: "Falta para nuestra cita de mesiversario",
+      icon: "map-pin", heroIcon: "map-pin",
+      title: "¡Es hora de nuestra cita!",
+      desc: "Esta tarde vamos a Ice You a comer un postrecito rico juntos. Nuestro mesiversario merece algo dulce, como tú, dulzura mía",
+      barLabel: "Nuestra cita",
+    },
+    {
+      hh: 20, mm: 30,
+      tag: "8:30 pm · Esta noche",
+      titleTop: "El regalo", titleEm: "de Marce",
+      label: "Falta para el último plan del día",
+      icon: "sparkles", heroIcon: "sparkles",
+      title: "¡A estrenarlo!",
+      desc: "Ponte lo que nos regaló Marce, que esta noche lo estrenamos juntos.",
+      barLabel: "Último",
+    },
+    {
+      hh: 21, mm: 0,
+      tag: "9:00 pm · Para cerrar el día",
+      titleTop: "Siete meses", titleEm: "y los que vienen",
+      label: "Falta para el mensaje final del día",
+      icon: "heart", heroIcon: "heart",
+      title: "Es un placer tenerte",
+      desc: "Siete meses contigo han sido un placer muy lindo. Gracias por ser tú, por estar, por quedarte. Espero que sean muchos, muchos más. Te amo.",
+      barLabel: "",
+    },
+  ],
 
-  /* Índices de slides */
-  SLIDE_BIENVENIDA:   0,
-  SLIDE_PAST_INICIO:  1,   // primer mes pasado
-  SLIDE_PAST_FIN:     7,   // último mes pasado
-  SLIDE_COUNTDOWN:    8,   // countdown principal al mesiversario
-  SLIDE_ACT_INICIO:   9,
-  SLIDE_ACT_FIN:     14,
-  SLIDE_CIERRE:      15,
-  TOTAL_SLIDES:      16,
+  CIERRE_LABEL: "Nuestro recuerdo",
 };
+
+/* ════════════════════════════════════════════════════════════
+   UTILIDADES DE FECHA / TEXTO
+   ════════════════════════════════════════════════════════════ */
+const MESES_ABBR = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MESES_FULL = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAS_FULL  = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const ORDINALES  = ["", "Primer","Segundo","Tercer","Cuarto","Quinto","Sexto","Séptimo",
+                    "Octavo","Noveno","Décimo","Undécimo","Duodécimo"];
+
+const pad   = n => String(n).padStart(2, "0");
+const cap   = s => s.charAt(0).toUpperCase() + s.slice(1);
+const ordinalWord = n => ORDINALES[n] || `${n}°`;
+
+/* Fecha (Date) del mesiversario nº k */
+function anivDate(k) {
+  const base = new Date(CONFIG.BASE);
+  return new Date(base.getFullYear(), base.getMonth() + k, CONFIG.ANIV_DAY, 0, 0, 0);
+}
+/* Medianoche del día siguiente al mesiversario nº k (cierre)  */
+function cierreDate(k) {
+  const base = new Date(CONFIG.BASE);
+  return new Date(base.getFullYear(), base.getMonth() + k, CONFIG.ANIV_DAY + 1, 0, 0, 0);
+}
+function pastDateLabel(d) {
+  return `${CONFIG.ANIV_DAY} · ${MESES_ABBR[d.getMonth()]} · ${d.getFullYear()}`;
+}
+function fullDateLabel(d) {
+  return `${CONFIG.ANIV_DAY} de ${MESES_FULL[d.getMonth()]} · ${d.getFullYear()} · ${cap(DIAS_FULL[d.getDay()])}`;
+}
+function tagLabel(n) {
+  return n === 0 ? "0 meses" : n === 1 ? "1 mes" : `${n} meses`;
+}
 
 /* ════════════════════════════════════════════════════════════
    ESTADO
    ════════════════════════════════════════════════════════════ */
-let currentIndex       = 0;
-let unlockedUpTo       = CONFIG.SLIDE_PAST_FIN + 1; // slides pasados siempre accesibles
-let barTimerId         = null;                      // timer único de la barra superior
-let mesiversarioHandled = false;                    // evita disparar dos veces el inicio del día
+let currentIndex        = 0;
+let unlockedUpTo        = 0;
+let gen                 = 0;     // generación: invalida timers tras un rebuild
+let barTimerId          = null;
+let dayEndTimerId       = null;
+let mesiversarioHandled = false;
+
+/* Layout dinámico de la baraja (se recalcula en cada build)    */
+let LAYOUT = {
+  total: 0,
+  welcome: 0,
+  pastStart: 1,
+  pastCount: 0,
+  countdown: 0,
+  actStart: 0,
+  actCount: 0,
+  target: 0,          // número de mes objetivo
+  targetDate: null,   // Date del mesiversario objetivo
+  acts: [],           // actividades resueltas (con ids y target)
+};
 
 /* ════════════════════════════════════════════════════════════
-   DOM
+   DOM persistente
    ════════════════════════════════════════════════════════════ */
-const slidesEls   = document.querySelectorAll(".slide");
+const deckEl      = document.getElementById("deck");
 const btnPrev     = document.getElementById("btn-prev");
 const btnNext     = document.getElementById("btn-next");
 const dotsWrap    = document.getElementById("nav-dots");
 const nextBar     = document.getElementById("next-bar");
 const nextBarLbl  = document.getElementById("next-bar-label");
 const nextBarTime = document.getElementById("next-bar-time");
+let slidesEls     = [];
 
 /* ════════════════════════════════════════════════════════════
-   INIT
+   CÁLCULO DEL CICLO ACTUAL
+   Determina qué meses ya quedaron como recuerdo y cuál es el
+   mesiversario objetivo (el que se está contando / viviendo).
+   ════════════════════════════════════════════════════════════ */
+function resolveCycle(now) {
+  const base = new Date(CONFIG.BASE);
+  const baseAbs = base.getFullYear() * 12 + base.getMonth();
+  const nowAbs  = now.getFullYear() * 12 + now.getMonth();
+  const kNow    = nowAbs - baseAbs;     // mes del mesiversario de este mes calendario
+
+  const thisAniv = anivDate(kNow);
+  const thisEnd  = cierreDate(kNow);
+
+  let lastCompleted, target, phase;
+  if (now < thisAniv) {
+    lastCompleted = kNow - 1; target = kNow; phase = "before";
+  } else if (now < thisEnd) {
+    lastCompleted = kNow - 1; target = kNow; phase = "during";
+  } else {
+    lastCompleted = kNow;     target = kNow + 1; phase = "before";
+  }
+  if (lastCompleted < 0) lastCompleted = -1;
+  if (target < 0)        target = 0;
+
+  return { lastCompleted, target, phase };
+}
+
+/* ════════════════════════════════════════════════════════════
+   GENERACIÓN DE LA BARAJA (HTML)
+   ════════════════════════════════════════════════════════════ */
+function unitsHTML(idPrefix, withDays) {
+  const unit = (id, w) =>
+    `<div class="time-unit"><span class="time-num" id="${id}">--</span><span class="time-word">${w}</span></div>`;
+  const sep = `<div class="time-sep">:</div>`;
+  let html = "";
+  if (withDays) html += unit(`${idPrefix}-d`, "d") + sep;
+  html += unit(`${idPrefix}-h`, "h") + sep
+        + unit(`${idPrefix}-m`, "m") + sep
+        + unit(`${idPrefix}-s`, "s");
+  return html;
+}
+
+function welcomeHTML(idx) {
+  return `
+  <section class="slide slide-welcome" id="slide-${idx}" data-index="${idx}">
+    <div class="slide-inner">
+      <div class="badge">Nuestro camino juntos 🤍</div>
+      <div class="hero-icon">
+        <div class="icon-heart foto-heart"><img src="foto.jpg" alt="Nosotros" /></div>
+      </div>
+      <h1 class="display-title">Cada mes<br/><em>contigo</em></h1>
+      <p class="body-text">
+        Desde el 4 de noviembre de 2025,<br/>
+        cada mes me recuerda que es mi felicidad quererte.
+      </p>
+      <div class="divider-ornament">✦ ✦ ✦</div>
+      <p class="hint-text">Desliza para ver nuestra historia</p>
+    </div>
+  </section>`;
+}
+
+function pastHTML(idx, n) {
+  const data = CONFIG.meses[n] || {};
+  const t    = data.title || { ordinal: ordinalWord(n), name: "mesiversario" };
+  const d    = anivDate(n);
+  return `
+  <section class="slide slide-past" id="slide-${idx}" data-index="${idx}">
+    <div class="slide-inner">
+      <div class="past-month-header">
+        <span class="past-ordinal">${t.ordinal}</span>
+        <span class="past-name">${t.name}</span>
+        <span class="past-date">${pastDateLabel(d)}</span>
+      </div>
+      <div class="past-photo-wrap">
+        <img src="${data.foto}" alt="${cap(MESES_FULL[d.getMonth()])} ${d.getFullYear()}" class="past-photo" />
+        <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
+      </div>
+      <div class="past-card">
+        <p class="past-note">${data.note || ""}</p>
+      </div>
+      <div class="past-tag-pill">${tagLabel(n)}</div>
+    </div>
+  </section>`;
+}
+
+function countdownHTML(idx, n, date) {
+  return `
+  <section class="slide slide-main-countdown" id="slide-${idx}" data-index="${idx}">
+    <div class="slide-inner">
+      <div class="badge">Próximo mesiversario</div>
+      <div class="month-number-display">${n}</div>
+      <h2 class="section-title">${ordinalWord(n)}<br/><em>mesiversario</em></h2>
+      <p class="slide-tag">${fullDateLabel(date)}</p>
+
+      <div class="countdown-block main-countdown" id="countdown-main">
+        <p class="countdown-label">Falta para nuestro día</p>
+        <div class="countdown-display">${unitsHTML("cm", true)}</div>
+      </div>
+
+      <div class="letter-card small">
+        <p>Ya viene el día. Tengo todo planeado para que sea especial. <i data-lucide="heart" class="past-heart-icon"></i></p>
+      </div>
+    </div>
+  </section>`;
+}
+
+function activityHTML(idx, i, act) {
+  const num = pad(i + 1);
+  return `
+  <section class="slide slide-activity locked" id="slide-${idx}" data-index="${idx}">
+    <div class="slide-inner">
+      <div class="lock-overlay" id="lock-${idx}">
+        <i data-lucide="lock" class="lock-icon"></i>
+        <p>Se abre cuando sea el momento</p>
+      </div>
+      <div class="activity-number">${num}</div>
+      <div class="slide-tag">${act.tag}</div>
+      <h2 class="section-title">${act.titleTop}<br/><em>${act.titleEm}</em></h2>
+      <div class="countdown-block" id="cd-${idx}">
+        <p class="countdown-label">${act.label}</p>
+        <div class="countdown-display">${unitsHTML("a" + idx, false)}</div>
+      </div>
+      <div class="reveal-card hidden" id="rv-${idx}">
+        <i data-lucide="${act.icon}" class="reveal-icon"></i>
+        <h3>${act.title}</h3>
+        <p class="reveal-desc">${act.desc}</p>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* Construye toda la baraja a partir de la fecha actual.        */
+function build() {
+  gen++;                                   // invalida cualquier timer anterior
+  if (barTimerId)    { clearTimeout(barTimerId);    barTimerId = null; }
+  if (dayEndTimerId) { clearTimeout(dayEndTimerId); dayEndTimerId = null; }
+  mesiversarioHandled = false;
+
+  const now   = new Date();
+  const cycle = resolveCycle(now);
+  const target = cycle.target;
+  const targetDate = anivDate(target);
+
+  // Meses que ya quedaron como recuerdo (0 .. lastCompleted)
+  const pastMonths = [];
+  for (let k = 0; k <= cycle.lastCompleted; k++) {
+    if (CONFIG.meses[k]) pastMonths.push(k);
+  }
+
+  // Índices
+  let idx = 0;
+  let html = "";
+
+  const welcomeIdx = idx;
+  html += welcomeHTML(idx++);
+
+  const pastStart = idx;
+  pastMonths.forEach(n => { html += pastHTML(idx++, n); });
+  const pastCount = idx - pastStart;
+
+  const countdownIdx = idx;
+  html += countdownHTML(idx++, target, targetDate);
+
+  const actStart = idx;
+  const acts = CONFIG.actividades.map((act, i) => {
+    const slideIdx = idx;
+    html += activityHTML(idx++, i, act);
+    return {
+      ...act,
+      index:      i,
+      slideIdx,
+      target:     new Date(targetDate.getFullYear(), targetDate.getMonth(), CONFIG.ANIV_DAY, act.hh, act.mm, 0).getTime(),
+      countdownId:`cd-${slideIdx}`,
+      revealId:   `rv-${slideIdx}`,
+      lockId:     `lock-${slideIdx}`,
+      spanH:      `a${slideIdx}-h`,
+      spanM:      `a${slideIdx}-m`,
+      spanS:      `a${slideIdx}-s`,
+      nextBarLabel: act.barLabel,
+    };
+  });
+  const actCount = idx - actStart;
+
+  deckEl.innerHTML = html;
+  slidesEls = deckEl.querySelectorAll(".slide");
+
+  LAYOUT = {
+    total: idx, welcome: welcomeIdx,
+    pastStart, pastCount,
+    countdown: countdownIdx,
+    actStart, actCount,
+    target, targetDate, acts, phase: cycle.phase,
+  };
+
+  unlockedUpTo = LAYOUT.countdown;   // bienvenida → countdown siempre accesibles
+  buildDots();
+  if (window.lucide) lucide.createIcons();
+}
+
+/* ════════════════════════════════════════════════════════════
+   ARRANQUE / RECONSTRUCCIÓN
    ════════════════════════════════════════════════════════════ */
 function init() {
-  if (window.lucide) lucide.createIcons();
-
-  buildDots();
-  resolveInitialState();   // decide en qué slide abrir y programa el día
+  build();
   startMainCountdown();
   startActivityCountdowns();
-  startNextMonthCountdown();
+  resolveLanding(true);
   initParticles();
 }
 
-/* ════════════════════════════════════════════════════════════
-   LÓGICA DE APERTURA AUTOMÁTICA
-   Decide en qué slide debe aterrizar la app según la hora real
-   y deja programadas las transiciones automáticas pendientes.
-   ════════════════════════════════════════════════════════════ */
-function resolveInitialState() {
-  const now        = Date.now();
-  const mesDate    = new Date(CONFIG.MESIVERSARIO_ACTUAL).getTime();
-  const cierreDate = new Date(CONFIG.CIERRE_TARGET).getTime();
+/* Reconstruye la baraja (rollover de fin de mes) y reinicia.   */
+function rebuild() {
+  build();
+  startMainCountdown();
+  startActivityCountdowns();
+  resolveLanding(false);
+}
 
-  // Primera visita: mostrar bienvenida y guardar que ya se vio
-  if (!localStorage.getItem("visited")) {
+/* Decide en qué slide aterrizar y programa lo pendiente.       */
+function resolveLanding(allowWelcome) {
+  const now = Date.now();
+
+  // Primera visita: bienvenida
+  if (allowWelcome && !localStorage.getItem("visited")) {
     localStorage.setItem("visited", "1");
-    unlockedUpTo = CONFIG.SLIDE_COUNTDOWN;
-    goTo(CONFIG.SLIDE_BIENVENIDA);
+    goTo(LAYOUT.welcome);
+    scheduleDayEnd();
     return;
   }
 
-  // Antes del día: abrir en el countdown principal
-  if (now < mesDate) {
-    unlockedUpTo = CONFIG.SLIDE_COUNTDOWN;
-    goTo(CONFIG.SLIDE_COUNTDOWN);
+  // Antes del día: countdown principal
+  if (now < LAYOUT.targetDate.getTime()) {
+    goTo(LAYOUT.countdown);
+    scheduleDayEnd();
     return;
   }
 
-  // Ya es el día (o después): el countdown principal ya está en cero,
-  // marcamos para que no vuelva a disparar el inicio del día.
+  // Ya es el día: revelar lo que corresponda y aterrizar en la actividad actual
   mesiversarioHandled = true;
 
-  // ¿Cuál fue la última actividad cuya hora ya pasó?
   let lastTriggered = -1;
-  for (let i = 0; i < CONFIG.actividades.length; i++) {
-    if (now >= new Date(CONFIG.actividades[i].target).getTime()) lastTriggered = i;
+  for (let i = 0; i < LAYOUT.acts.length; i++) {
+    if (now >= LAYOUT.acts[i].target) lastTriggered = i;
   }
+  for (let i = 0; i <= lastTriggered; i++) revealActivity(i, false);
 
-  // Revelar (sin navegar) todas las actividades que ya ocurrieron
-  for (let i = 0; i <= lastTriggered; i++) {
-    revealActivity(i, false);
-  }
-
-  // Si ya terminó el día: mostrar directamente el slide de cierre
-  if (now >= cierreDate) {
-    unlockSlide(CONFIG.SLIDE_CIERRE);
-    goTo(CONFIG.SLIDE_CIERRE);
-    return;
-  }
-
-  // En medio del día: programar la siguiente transición en vivo
-  // y aterrizar en la actividad actual.
   scheduleNextAfter(lastTriggered);
-  goTo(CONFIG.SLIDE_ACT_INICIO + lastTriggered);
+  goTo(LAYOUT.actStart + Math.max(lastTriggered, 0));
 }
 
 /* ════════════════════════════════════════════════════════════
-   REVELACIÓN DE ACTIVIDADES (pantalla completa)
+   REVELACIÓN DE ACTIVIDADES
    ════════════════════════════════════════════════════════════ */
-
-/* Revela una actividad: desbloquea, muestra la tarjeta, oculta el
-   countdown e inserta el ícono central grande. Idempotente.
-   Si navigate === true, además salta a ese slide.              */
 function revealActivity(index, navigate) {
-  const act = CONFIG.actividades[index];
+  const act = LAYOUT.acts[index];
   if (!act) return;
-  const slideIndex = CONFIG.SLIDE_ACT_INICIO + index;
 
   unlockUpToActivity(index);
 
@@ -213,76 +475,81 @@ function revealActivity(index, navigate) {
   const cdBlock = document.getElementById(act.countdownId);
   if (cdBlock) cdBlock.classList.add("done");
 
-  const slideEl = document.getElementById("slide-" + slideIndex);
+  const slideEl = document.getElementById("slide-" + act.slideIdx);
   if (slideEl) {
     slideEl.classList.add("revealed");
     ensureHeroIcon(slideEl, act);
   }
 
   if (window.lucide) lucide.createIcons();
-  if (navigate) goTo(slideIndex);
+  if (navigate) goTo(act.slideIdx);
 }
 
-/* Inserta (una sola vez) el ícono de Lucide grande que llena el
-   centro cuando se oculta el countdown.                        */
 function ensureHeroIcon(slideEl, act) {
   const inner = slideEl.querySelector(".slide-inner");
   if (!inner || inner.querySelector(".reveal-hero-icon")) return;
-
   const hero = document.createElement("i");
   hero.setAttribute("data-lucide", act.heroIcon || "heart");
   hero.className = "reveal-hero-icon";
-
   const card = document.getElementById(act.revealId);
   if (card) inner.insertBefore(hero, card);
   else      inner.appendChild(hero);
 }
 
-/* Desbloquea todos los slides de actividad hasta el índice dado */
 function unlockUpToActivity(index) {
   for (let j = 0; j <= index; j++) {
-    const s = CONFIG.SLIDE_ACT_INICIO + j;
-    if (s <= CONFIG.SLIDE_ACT_FIN) unlockSlide(s);
+    const a = LAYOUT.acts[j];
+    if (a) unlockSlide(a.slideIdx);
   }
 }
 
-/* Activación EN VIVO: revela + navega + programa la siguiente */
 function activateActivityLive(index) {
   revealActivity(index, true);
   scheduleNextAfter(index);
 }
 
 /* Programa la barra superior hacia la siguiente actividad (o,
-   si ya no hay más, hacia el cierre del día).                  */
+   si ya no hay más, hacia el cierre del día → rollover).        */
 function scheduleNextAfter(index) {
-  const nextAct = CONFIG.actividades[index + 1];
+  const nextAct = LAYOUT.acts[index + 1];
 
   if (nextAct) {
     startBarCountdown(
       nextAct.nextBarLabel,
-      new Date(nextAct.target).getTime(),
+      nextAct.target,
       () => activateActivityLive(index + 1)
     );
     return;
   }
-
   // No hay más actividades → contar hacia el cierre del día
-  const cierre = new Date(CONFIG.CIERRE_TARGET).getTime();
+  const cierre = cierreDate(LAYOUT.target).getTime();
   if (Date.now() < cierre) {
-    startBarCountdown(CONFIG.CIERRE_LABEL, cierre, showClosingLive);
+    startBarCountdown(CONFIG.CIERRE_LABEL, cierre, rollOver);
   } else {
-    showClosingLive();
+    rollOver();
   }
 }
 
-/* Muestra el slide de cierre (recuerdo + countdown al 8°)      */
-function showClosingLive() {
+/* Fin del día: oculta la barra y reconstruye (el mes vivido pasa
+   a ser un slide de foto y el contador salta al mes siguiente). */
+function rollOver() {
   hideBar();
-  unlockSlide(CONFIG.SLIDE_CIERRE);
-  goTo(CONFIG.SLIDE_CIERRE);
+  rebuild();
 }
 
-/* Se ejecuta cuando el countdown principal llega a cero        */
+function scheduleDayEnd() {
+  if (dayEndTimerId) { clearTimeout(dayEndTimerId); dayEndTimerId = null; }
+  const myGen = gen;
+  const cierre = cierreDate(LAYOUT.target).getTime();
+  const diff   = cierre - Date.now();
+  if (diff <= 0) return;
+  // setTimeout admite hasta ~24.8 días; los ciclos caben de sobra.
+  dayEndTimerId = setTimeout(() => {
+    if (myGen !== gen) return;
+    rollOver();
+  }, diff);
+}
+
 function onMesiversarioReached() {
   if (mesiversarioHandled) return;
   mesiversarioHandled = true;
@@ -292,12 +559,15 @@ function onMesiversarioReached() {
 /* ════════════════════════════════════════════════════════════
    NAVEGACIÓN
    ════════════════════════════════════════════════════════════ */
+function isPastIndex(i) {
+  return i >= LAYOUT.pastStart && i < LAYOUT.pastStart + LAYOUT.pastCount;
+}
+
 function buildDots() {
   dotsWrap.innerHTML = "";
-  for (let i = 0; i < CONFIG.TOTAL_SLIDES; i++) {
+  for (let i = 0; i < LAYOUT.total; i++) {
     const dot = document.createElement("button");
-    const isPast = i >= CONFIG.SLIDE_PAST_INICIO && i <= CONFIG.SLIDE_PAST_FIN;
-    dot.className = "dot" + (isPast ? " past-dot" : " locked-dot");
+    dot.className = "dot" + (isPastIndex(i) ? " past-dot" : " locked-dot");
     dot.setAttribute("aria-label", `Sección ${i + 1}`);
     dot.dataset.index = i;
     dot.addEventListener("click", () => { if (i <= unlockedUpTo) goTo(i); });
@@ -322,13 +592,13 @@ function updateNav() {
 
   const dots = dotsWrap.querySelectorAll(".dot");
   dots.forEach((dot, i) => {
-    const isPast = i >= CONFIG.SLIDE_PAST_INICIO && i <= CONFIG.SLIDE_PAST_FIN;
+    const past = isPastIndex(i);
     dot.classList.remove("active", "unlocked", "locked-dot", "past-dot");
     if (i === currentIndex) {
       dot.classList.add("active");
-      if (isPast) dot.classList.add("past-dot");
+      if (past) dot.classList.add("past-dot");
     } else if (i <= unlockedUpTo) {
-      dot.classList.add(isPast ? "past-dot" : "unlocked");
+      dot.classList.add(past ? "past-dot" : "unlocked");
     } else {
       dot.classList.add("locked-dot");
     }
@@ -336,7 +606,7 @@ function updateNav() {
 }
 
 function goTo(index) {
-  if (index < 0 || index >= CONFIG.TOTAL_SLIDES) return;
+  if (index < 0 || index >= LAYOUT.total) return;
   if (index > unlockedUpTo) return;
   showSlide(index);
 }
@@ -369,25 +639,24 @@ btnNext.addEventListener("click", () => goTo(currentIndex + 1));
 })();
 
 /* ════════════════════════════════════════════════════════════
-   COUNTDOWN PRINCIPAL (al mesiversario)
-   Cuando llega a cero → arranca el día (primera actividad +
-   barra superior hacia la siguiente).
+   COUNTDOWN PRINCIPAL (al mesiversario objetivo)
    ════════════════════════════════════════════════════════════ */
 function startMainCountdown() {
-  const target = new Date(CONFIG.MESIVERSARIO_ACTUAL).getTime();
+  const myGen  = gen;
+  const target = LAYOUT.targetDate.getTime();
   const dEl = document.getElementById("cm-d");
   const hEl = document.getElementById("cm-h");
   const mEl = document.getElementById("cm-m");
   const sEl = document.getElementById("cm-s");
 
   function tick() {
+    if (myGen !== gen) return;
     const diff = target - Date.now();
     if (diff <= 0) {
       if (dEl) dEl.textContent = "00";
       if (hEl) hEl.textContent = "00";
       if (mEl) mEl.textContent = "00";
       if (sEl) sEl.textContent = "00";
-      // Ya es el día → mostrar la primera actividad a pantalla completa
       onMesiversarioReached();
       return;
     }
@@ -395,87 +664,45 @@ function startMainCountdown() {
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    const p = n => String(n).padStart(2, "0");
-    if (dEl) setTick(dEl, p(d));
-    if (hEl) setTick(hEl, p(h));
-    if (mEl) setTick(mEl, p(m));
-    if (sEl) setTick(sEl, p(s));
+    if (dEl) setTick(dEl, pad(d));
+    if (hEl) setTick(hEl, pad(h));
+    if (mEl) setTick(mEl, pad(m));
+    if (sEl) setTick(sEl, pad(s));
     setTimeout(tick, 1000);
   }
   tick();
 }
 
 /* ════════════════════════════════════════════════════════════
-   COUNTDOWNS DE ACTIVIDADES DEL DÍA
-   (Cada slide tiene su propio reloj; al llegar a cero revela su
-   actividad como red de seguridad. La navegación automática la
-   conduce la barra superior.)
+   COUNTDOWNS DE ACTIVIDADES (red de seguridad por slide)
    ════════════════════════════════════════════════════════════ */
 function startActivityCountdowns() {
-  CONFIG.actividades.forEach((act, i) => {
-    startActivityCountdown(act, i);
-  });
+  LAYOUT.acts.forEach((act, i) => startActivityCountdown(act, i));
 }
 
 function startActivityCountdown(act, index) {
-  const target = new Date(act.target).getTime();
-  const hEl    = document.getElementById(act.spanH);
-  const mEl    = document.getElementById(act.spanM);
-  const sEl    = document.getElementById(act.spanS);
+  const myGen  = gen;
+  const target = act.target;
+  const hEl = document.getElementById(act.spanH);
+  const mEl = document.getElementById(act.spanM);
+  const sEl = document.getElementById(act.spanS);
 
   function tick() {
+    if (myGen !== gen) return;
     const diff = target - Date.now();
-
     if (diff <= 0) {
       if (hEl) hEl.textContent = "00";
       if (mEl) mEl.textContent = "00";
       if (sEl) sEl.textContent = "00";
-      // Red de seguridad: revela esta actividad sin forzar navegación.
-      revealActivity(index, false);
+      revealActivity(index, false);   // red de seguridad, sin navegar
       return;
     }
-
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    const p = n => String(n).padStart(2, "0");
-    if (hEl) setTick(hEl, p(h));
-    if (mEl) setTick(mEl, p(m));
-    if (sEl) setTick(sEl, p(s));
-    setTimeout(tick, 1000);
-  }
-
-  tick();
-}
-
-/* ════════════════════════════════════════════════════════════
-   COUNTDOWN SIGUIENTE MESIVERSARIO (slide de cierre, 8° mes)
-   ════════════════════════════════════════════════════════════ */
-function startNextMonthCountdown() {
-  const target = new Date(CONFIG.SIGUIENTE_MESIVERSARIO).getTime();
-  const dEl = document.getElementById("cn-d");
-  const hEl = document.getElementById("cn-h");
-  const mEl = document.getElementById("cn-m");
-  const sEl = document.getElementById("cn-s");
-
-  function tick() {
-    const diff = target - Date.now();
-    if (diff <= 0) {
-      if (dEl) dEl.textContent = "00";
-      if (hEl) hEl.textContent = "00";
-      if (mEl) mEl.textContent = "00";
-      if (sEl) sEl.textContent = "00";
-      return;
-    }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    const p = n => String(n).padStart(2, "0");
-    if (dEl) setTick(dEl, p(d));
-    if (hEl) setTick(hEl, p(h));
-    if (mEl) setTick(mEl, p(m));
-    if (sEl) setTick(sEl, p(s));
+    if (hEl) setTick(hEl, pad(h));
+    if (mEl) setTick(mEl, pad(m));
+    if (sEl) setTick(sEl, pad(s));
     setTimeout(tick, 1000);
   }
   tick();
@@ -483,34 +710,27 @@ function startNextMonthCountdown() {
 
 /* ════════════════════════════════════════════════════════════
    BARRA SUPERIOR (cuenta continua hacia la próxima actividad)
-   Al llegar a cero ejecuta onZero (reemplaza la pantalla con la
-   nueva actividad). Mantiene un único timer activo.
    ════════════════════════════════════════════════════════════ */
 function startBarCountdown(label, targetMs, onZero) {
   if (barTimerId) { clearTimeout(barTimerId); barTimerId = null; }
+  const myGen = gen;
 
   nextBarLbl.textContent = label || "Próxima sorpresa";
   nextBar.classList.remove("hidden");
 
   let fired = false;
-
   function tick() {
+    if (myGen !== gen) return;
     const diff = targetMs - Date.now();
     if (diff <= 0) {
       nextBarTime.textContent = "¡Ya!";
-      if (!fired) {
-        fired = true;
-        if (typeof onZero === "function") onZero();
-      }
+      if (!fired) { fired = true; if (typeof onZero === "function") onZero(); }
       return;
     }
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    const p = n => String(n).padStart(2, "0");
-    nextBarTime.textContent = h > 0
-      ? `${p(h)}:${p(m)}:${p(s)}`
-      : `${p(m)}:${p(s)}`;
+    nextBarTime.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
     barTimerId = setTimeout(tick, 1000);
   }
   tick();
@@ -546,7 +766,6 @@ function initParticles() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
-
   function makeParticles(n) {
     return Array.from({ length: n }, () => ({
       x: Math.random() * W,
@@ -560,16 +779,12 @@ function initParticles() {
       speed: Math.random() * 0.01 + 0.005,
     }));
   }
-
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
     for (const p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x < 0) p.x = W;
-      if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H;
-      if (p.y > H) p.y = 0;
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
       const alpha = p.alpha * (0.6 + 0.4 * Math.sin(t * p.speed + p.phase));
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
