@@ -10,7 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
-  <link rel="stylesheet" href="styles.css" />
+  <!-- styles.css con "cache-busting": el ?v=... cambia en cada carga para que
+       el navegador siempre tome la versión más reciente (sin recargas forzadas). -->
+  <script>document.write('<link rel="stylesheet" href="styles.css?v=' + Date.now() + '">');</script>
+  <noscript><link rel="stylesheet" href="styles.css" /></noscript>
 </head>
 <body>
 
@@ -43,6 +46,9 @@
     </button>
   </nav>
 
-  <script src="app.js"></script>
+  <!-- app.js con "cache-busting": mismo truco que styles.css, así los cambios
+       que edites en las actividades/recuerdos se ven al instante. -->
+  <script>document.write('<script src="app.js?v=' + Date.now() + '"><\/script>');</script>
+  <noscript><script src="app.js"></script></noscript>
 </body>
 </html>
