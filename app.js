@@ -106,8 +106,8 @@ const CONFIG = {
       barLabel: "Siguiente",
     },
     {
-      hh: 12, mm: 0,
-      tag: "12:00 pm · Almuercito",
+      hh: 13, mm: 30,
+      tag: "13:30 · Almuercito",
       titleTop: "Creps & Waffles", titleEm: "nos espera",
       label: "Falta para el almuerzo",
       icon: "hamburger", heroIcon: "hamburger",
