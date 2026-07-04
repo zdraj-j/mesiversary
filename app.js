@@ -126,8 +126,8 @@ const CONFIG = {
       barLabel: ":)",
     },
     {
-      hh: 16, mm: 15,
-      tag: "16:15 · Heladito",
+      hh: 15, mm: 40,
+      tag: "15:40 · Heladito",
       titleTop: "Un heladito y caminar", titleEm: "por el lago",
       label: "Heladito y charla",
       icon: "ice-cream-cone", heroIcon: "footprints",
@@ -138,7 +138,7 @@ const CONFIG = {
 {
       hh: 19, mm: 00,
       tag: "19:00 · Jugar",
-      titleTop: "Un heladito y caminar", titleEm: "por el lago",
+      titleTop: "Juguemos juntos", titleEm: "lo que quieras",
       label: "Heladito y charla",
       icon: "ice-cream-cone", heroIcon: "footprints",
       title: "Caminar y charlar",
