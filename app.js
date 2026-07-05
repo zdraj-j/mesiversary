@@ -62,6 +62,9 @@ const CONFIG = {
       foto: "mes-7.jpg",
       note: '<i data-lucide="ice-cream" class="inline-icon"></i>No era el lugar que tenía planeado, pero me encanta estar contigo sin importar dónde',
     },
+     { // Mes 8 · 4 julio 2026
+      note: '<i data-lucide="croissant" class="inline-icon"></i>Nos faltó la ensalada, y las actividades no estaban muy definidas  y aún con eso fue un día perfecto. mi amas vin',
+    },
   ],
 
   /* ──────────────────────────────────────────────────────────
