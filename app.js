@@ -576,15 +576,21 @@ function rollOver() {
 
 function scheduleDayEnd() {
   if (dayEndTimerId) { clearTimeout(dayEndTimerId); dayEndTimerId = null; }
-  const myGen = gen;
+  const myGen  = gen;
   const cierre = cierreDate(LAYOUT.target).getTime();
-  const diff   = cierre - Date.now();
-  if (diff <= 0) return;
-  // setTimeout admite hasta ~24.8 días; los ciclos caben de sobra.
-  dayEndTimerId = setTimeout(() => {
-    if (myGen !== gen) return;
-    rollOver();
-  }, diff);
+
+  // setTimeout solo admite hasta 2^31-1 ms (~24.8 días). Un ciclo mensual
+  // puede ser mayor (hasta ~31 días), y un delay mayor DESBORDA y dispara
+  // el timer de inmediato → bucle de rebuild. Por eso troceamos la espera
+  // en tramos seguros y re-verificamos al despertar.
+  const MAX_DELAY = 2000000000;   // < 2^31-1, con margen
+  function arm() {
+    if (myGen !== gen) return;    // baraja reconstruida: este timer quedó obsoleto
+    const diff = cierre - Date.now();
+    if (diff <= 0) { rollOver(); return; }
+    dayEndTimerId = setTimeout(arm, Math.min(diff, MAX_DELAY));
+  }
+  arm();
 }
 
 function onMesiversarioReached() {
