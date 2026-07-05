@@ -5,6 +5,7 @@
    al terminar el día se ocultan/bloquean solas, ese mes pasa a
    ser un slide de foto y el contador salta al siguiente mes.
    ============================================================ */
+/* (redeploy) */
 
 /* ════════════════════════════════════════════════════════════
    ▶ CONFIGURACIÓN — todo lo que querrás editar está aquí
