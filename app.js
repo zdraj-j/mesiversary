@@ -291,10 +291,27 @@ function welcomeHTML(idx) {
   </section>`;
 }
 
+/* Datos del recuerdo del mes n. La foto se toma por convención
+   (mes-N.jpg): basta subir la imagen con ese nombre para que el
+   slide aparezca. CONFIG.meses[n] es opcional y solo sirve para
+   personalizar la nota, la foto o el título.                    */
+function mesData(n) {
+  const m = CONFIG.meses[n] || {};
+  return {
+    foto:  m.foto  || `mes-${n}.jpg`,
+    note:  m.note  || "",
+    title: m.title || { ordinal: ordinalWord(n), name: "mesiversario" },
+  };
+}
+
 function pastHTML(idx, n) {
-  const data = CONFIG.meses[n] || {};
-  const t    = data.title || { ordinal: ordinalWord(n), name: "mesiversario" };
+  const data = mesData(n);
+  const t    = data.title;
   const d    = anivDate(n);
+  // La tarjeta de texto solo se muestra si ya escribiste una nota.
+  const cardHTML = data.note
+    ? `<div class="past-card"><p class="past-note">${data.note}</p></div>`
+    : "";
   return `
   <section class="slide slide-past" id="slide-${idx}" data-index="${idx}">
     <div class="slide-inner">
@@ -307,9 +324,7 @@ function pastHTML(idx, n) {
         <img src="${data.foto}" alt="${cap(MESES_FULL[d.getMonth()])} ${d.getFullYear()}" class="past-photo" />
         <div class="past-photo-overlay"><i data-lucide="heart" class="past-heart-icon"></i></div>
       </div>
-      <div class="past-card">
-        <p class="past-note">${data.note || ""}</p>
-      </div>
+      ${cardHTML}
       <div class="past-tag-pill">${tagLabel(n)}</div>
     </div>
   </section>`;
@@ -373,10 +388,12 @@ function build() {
   const target = cycle.target;
   const targetDate = anivDate(target);
 
-  // Meses que ya quedaron como recuerdo (0 .. lastCompleted)
+  // Meses que ya quedaron como recuerdo (0 .. lastCompleted).
+  // Se muestran todos: la foto se toma por convención (mes-N.jpg),
+  // así basta subir la imagen para que aparezca el slide del mes.
   const pastMonths = [];
   for (let k = 0; k <= cycle.lastCompleted; k++) {
-    if (CONFIG.meses[k]) pastMonths.push(k);
+    pastMonths.push(k);
   }
 
   // Índices
