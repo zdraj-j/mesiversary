@@ -150,7 +150,7 @@ const CONFIG = {
       tag: "21:00 · Cierre",
       titleTop: "Ocho meses", titleEm: "y los que vienen",
       label: "Mensaje final del día",
-      icon: "heart", heroIcon: "heart",
+      icon: "heart", heroIcon: "heart-handshake",
       title: "Es un placer tenerte",
       desc: "Este mensaje normalmente es a las 12, pero sé que te acuestas temprano y sólo quería contarte que te amo y que me encanta estar contigo. Feliz octimesiversario",
       barLabel: "",
