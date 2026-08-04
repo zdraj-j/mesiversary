@@ -161,8 +161,39 @@ const CONFIG = {
     },
   ],
 
+  /* ──────────────────────────────────────────────────────────
+     MENSAJES ESPECIALES (excepción puntual de un mes).
+     Si un mes aparece aquí, ESE mesiversario no usa la agenda de
+     actividades de arriba: en su lugar muestra un único slide con
+     un mensaje que se abre a las 00:00 del día.
+     La lista de actividades y su countdown siguen intactos y se
+     usan de nuevo en cualquier mes que no esté en esta lista.
+
+     Clave = número de mes (9 = 4 de agosto de 2026).
+     ────────────────────────────────────────────────────────── */
+  especiales: {
+    9: {
+      hh: 0, mm: 0,
+      tag: "Todo el día · Sin agenda",
+      titleTop: "Nueve meses", titleEm: "con mi amorcito",
+      label: "Falta para nuestro noveno mesiversario",
+      icon: "heart", heroIcon: "heart",
+      title: "Hola, amor mío.",
+      desc: "este mesiversario no habrá una agenda de actividades a lo largo del día, iremos a pasar una linda tarde-noche juntos en donde ya reservé. Eso no cambia que en el día pueda haber sorpresas. i love u",
+      barLabel: "Nuestro día",
+    },
+  },
+
   CIERRE_LABEL: "Nuestro recuerdo",
 };
+
+/* Plan del mes n: el mensaje especial si lo hay, si no la agenda
+   de actividades de siempre.                                     */
+function planDelMes(n) {
+  const especial = CONFIG.especiales && CONFIG.especiales[n];
+  return especial ? { acts: [especial], especial: true }
+                  : { acts: CONFIG.actividades, especial: false };
+}
 
 /* ════════════════════════════════════════════════════════════
    UTILIDADES DE FECHA / TEXTO
@@ -355,16 +386,18 @@ function countdownHTML(idx, n, date) {
   </section>`;
 }
 
-function activityHTML(idx, i, act) {
-  const num = pad(i + 1);
+function activityHTML(idx, i, act, especial) {
+  // En un mes con mensaje especial hay un solo slide: no lleva
+  // número de actividad porque no hay agenda que numerar.
+  const numHTML = especial ? "" : `<div class="activity-number">${pad(i + 1)}</div>`;
   return `
-  <section class="slide slide-activity locked" id="slide-${idx}" data-index="${idx}">
+  <section class="slide slide-activity${especial ? " slide-especial" : ""} locked" id="slide-${idx}" data-index="${idx}">
     <div class="slide-inner">
       <div class="lock-overlay" id="lock-${idx}">
         <i data-lucide="lock" class="lock-icon"></i>
         <p>Se abre cuando sea el momento</p>
       </div>
-      <div class="activity-number">${num}</div>
+      ${numHTML}
       <div class="slide-tag">${act.tag}</div>
       <h2 class="section-title">${act.titleTop}<br/><em>${act.titleEm}</em></h2>
       <div class="countdown-block" id="cd-${idx}">
@@ -415,9 +448,10 @@ function build() {
   html += countdownHTML(idx++, target, targetDate);
 
   const actStart = idx;
-  const acts = CONFIG.actividades.map((act, i) => {
+  const plan = planDelMes(target);
+  const acts = plan.acts.map((act, i) => {
     const slideIdx = idx;
-    html += activityHTML(idx++, i, act);
+    html += activityHTML(idx++, i, act, plan.especial);
     return {
       ...act,
       index:      i,

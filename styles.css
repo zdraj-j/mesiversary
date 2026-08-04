@@ -643,6 +643,12 @@ html, body {
   line-height: 1.7;
 }
 
+/* ── Mes con mensaje especial (sin agenda de actividades) ───── */
+/* Un solo slide para todo el día: el mensaje respira un poco más. */
+.slide-especial .reveal-card { padding: 30px 24px; }
+.slide-especial .reveal-card h3 { font-size: 24px; }
+.slide-especial .reveal-card .reveal-desc { font-size: 15px; line-height: 1.8; }
+
 /* ══════════════════════════════════════════════════════════════
    NAVEGACIÓN
 ══════════════════════════════════════════════════════════════ */
